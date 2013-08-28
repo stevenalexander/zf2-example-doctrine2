@@ -20,7 +20,6 @@ Creation Steps
     php composer.phar require doctrine/doctrine-module:dev-master
     php composer.phar require doctrine/doctrine-orm-module:dev-master
 
-
 Links
 -----
 * [ZF2](http://framework.zend.com/)
