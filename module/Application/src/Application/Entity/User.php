@@ -14,5 +14,18 @@ class User {
     /** @ORM\Column(type="string") */
     protected $fullName;
 
-    // getters/setters
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    public function getFullName()
+    {
+        return $this->fullName;
+    }
+
+    public function setFullName($value)
+    {
+        $this->fullName = $value;
+    }
 }

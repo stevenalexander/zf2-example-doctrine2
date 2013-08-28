@@ -69,7 +69,20 @@ class User {
     /** @ORM\Column(type="string") */
     protected $fullName;
 
-    // getters/setters
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    public function getFullName()
+    {
+        return $this->fullName;
+    }
+
+    public function setFullName($value)
+    {
+        $this->fullName = $value;
+    }
 }
 ```
 
@@ -141,6 +154,26 @@ This will apply the ORM generated schema to the DB
 
 ```
 ./vendor/bin/doctrine-module orm:schema-tool:create
+```
+
+10.Update index action to test creating a User entity
+
+Edit module/Application/src/Application/Controller/IndexController.php:
+
+```
+public function indexAction() {
+    $objectManager = $this
+        ->getServiceLocator()
+        ->get('Doctrine\ORM\EntityManager');
+
+    $user = new \Application\Entity\User();
+    $user->setFullName('Simon Sample');
+
+    $objectManager->persist($user);
+    $objectManager->flush();
+
+    die(var_dump($user->getId()));
+}
 ```
 
 Links
