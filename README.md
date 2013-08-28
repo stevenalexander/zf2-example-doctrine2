@@ -99,11 +99,22 @@ return array(
 
 You should now see the new entity in the ZF2 Dev tool bar in the doctrine section at the bottom of the screen.
 
-7.Add Database config for Doctrine
+7.Add database config for Doctrine
+
+New file local.php:
+
+```
+<?php
+
+return array(
+);
+```
 
 New file config/autoload/doctrine.local.php (for local MySql):
 
 ```
+<?php
+
 return array(
   'doctrine' => array(
     'connection' => array(
@@ -116,6 +127,20 @@ return array(
           'password' => 'password',
           'dbname'   => 'database',
 )))));
+```
+
+8.Validate the schema against the current DB (will fail since you haven't got any schema)
+
+```
+./vendor/bin/doctrine-module orm:validate-schema
+```
+
+9.Generate the schema
+
+This will apply the ORM generated schema to the DB
+
+```
+./vendor/bin/doctrine-module orm:schema-tool:create
 ```
 
 Links
