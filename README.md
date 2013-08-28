@@ -1,4 +1,4 @@
-ZF2 with Doctrine 2 ORM for Entity versioning
+ZF2 with Doctrine 2 ORM
 =======================
 
 Introduction
@@ -73,7 +73,7 @@ class User {
 }
 ```
 
-6. Add the Doctrine Driver to application config
+6.Add the Doctrine Driver to application config
 
 Edit config/module.config.php:
 
@@ -97,6 +97,26 @@ return array(
     ...
 ```
 
+You should now see the new entity in the ZF2 Dev tool bar in the doctrine section at the bottom of the screen.
+
+7.Add Database config for Doctrine
+
+New file config/autoload/doctrine.local.php (for local MySql):
+
+```
+return array(
+  'doctrine' => array(
+    'connection' => array(
+      'orm_default' => array(
+        'driverClass' =>'Doctrine\DBAL\Driver\PDOMySql\Driver',
+        'params' => array(
+          'host'     => 'localhost',
+          'port'     => '3306',
+          'user'     => 'username',
+          'password' => 'password',
+          'dbname'   => 'database',
+)))));
+```
 
 Links
 -----
