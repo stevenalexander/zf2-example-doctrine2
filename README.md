@@ -3,7 +3,7 @@ ZF2 with Doctrine 2 ORM
 
 Introduction
 ------------
-This is an example Zend Framework 2 application using Doctrine 2 ORM to implement entity versioning.
+This is an example Zend Framework 2 application using Doctrine 2 ORM. Most of this is based on [Marco Pivetta Blog](http://marco-pivetta.com/doctrine-orm-zf2-tutorial/) screencast.
 
 Creation Steps
 --------------
@@ -156,25 +156,202 @@ This will apply the ORM generated schema to the DB
 ./vendor/bin/doctrine-module orm:schema-tool:create
 ```
 
-10.Update index action to test creating a User entity
+10.Update routes for CRUD actions
+
+Edit module/Application/config/module.config.php:
+
+```
+...
+'user' => array(
+    'type'    => 'segment',
+    'options' => array(
+        'route'    => '/user[/][:action][/:id]',
+        'constraints' => array(
+            'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+            'id'     => '[0-9]+',
+        ),
+        'defaults' => array(
+            'controller' => 'Application\Controller\Index',
+            'action'     => 'index',
+        ),
+    ),
+),
+...
+```
+
+11.Update IndexController for CRUD actions
 
 Edit module/Application/src/Application/Controller/IndexController.php:
 
 ```
-public function indexAction() {
-    $objectManager = $this
-        ->getServiceLocator()
-        ->get('Doctrine\ORM\EntityManager');
+<?php
 
-    $user = new \Application\Entity\User();
-    $user->setFullName('Simon Sample');
+namespace Application\Controller;
 
-    $objectManager->persist($user);
-    $objectManager->flush();
+use Zend\Mvc\Controller\AbstractActionController;
+use Zend\View\Model\ViewModel;
+use Application\Entity\User;
 
-    die(var_dump($user->getId()));
+class IndexController extends AbstractActionController
+{
+    protected $_objectManager;
+
+    public function indexAction()
+    {
+        $users = $this->getObjectManager()->getRepository('\Application\Entity\User')->findAll();
+
+        return new ViewModel(array('users' => $users));
+    }
+
+    public function addAction()
+    {
+        if ($this->request->isPost()) {
+            $user = new User();
+            $user->setFullName($this->getRequest()->getPost('fullname'));
+
+            $this->getObjectManager()->persist($user);
+            $this->getObjectManager()->flush();
+            $newId = $user->getId();
+
+            return $this->redirect()->toRoute('home');
+        }
+        return new ViewModel();
+    }
+
+    public function editAction()
+    {
+        $id = (int) $this->params()->fromRoute('id', 0);
+        $user = $this->getObjectManager()->find('\Application\Entity\User', $id);
+
+        if ($this->request->isPost()) {
+            $user->setFullName($this->getRequest()->getPost('fullname'));
+
+            $this->getObjectManager()->persist($user);
+            $this->getObjectManager()->flush();
+
+            return $this->redirect()->toRoute('home');
+        }
+
+        return new ViewModel(array('user' => $user));
+    }
+
+    public function deleteAction()
+    {
+        $id = (int) $this->params()->fromRoute('id', 0);
+        $user = $this->getObjectManager()->find('\Application\Entity\User', $id);
+
+        if ($this->request->isPost()) {
+            $this->getObjectManager()->remove($user);
+            $this->getObjectManager()->flush();
+
+            return $this->redirect()->toRoute('home');
+        }
+
+        return new ViewModel(array('user' => $user));
+    }
+
+    protected function getObjectManager()
+    {
+        if (!$this->_objectManager) {
+            $this->_objectManager = $this->getServiceLocator()->get('Doctrine\ORM\EntityManager');
+        }
+
+        return $this->_objectManager;
+    }
 }
 ```
+
+12.Add views for CRUD actions
+
+Edit module/Application/view/application/index/index.phtml:
+
+```
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Users</h3>
+            </div>
+            <div class="panel-body">
+                <a href="<?php echo $this->url('user', array('action'=>'add'));?>">Add User</a>
+
+                <?php if (isset($users)) : ?>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Full name</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                <?php foreach($users as $user): ?>
+                    <tbody>
+                    <tr>
+                        <td><?php echo $user->getId(); ?></td>
+                        <td><?php echo $user->getFullName(); ?></td>
+                        <td>
+                            <a href="<?php echo $this->url('user', array('action'=>'edit', 'id' => $user->getId()));?>">Edit</a> |
+                            <a href="<?php echo $this->url('user', array('action'=>'delete', 'id' => $user->getId()));?>">Delete</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                <?php endforeach; ?>
+                </table>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+```
+
+Edit module/Application/view/application/index/add.phtml:
+
+```
+<?php
+// module/Album/view/album/album/add.phtml:
+
+$title = 'Add new User';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+<form method="post">
+  fullname: <input type="text" name="fullname"><br>
+  <input type="submit" value="Submit">
+</form>
+```
+Edit module/Application/view/application/index/edit.phtml:
+
+```
+<?php
+// module/Album/view/album/album/add.phtml:
+
+$title = 'Edit User';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+<form method="post">
+  fullname: <input type="text" name="fullname" value="<?php echo $user->getFullname(); ?>"><br>
+  <input type="submit" value="Submit">
+</form>
+```
+Edit module/Application/view/application/index/delete.phtml:
+
+```
+<?php
+// module/Album/view/album/album/add.phtml:
+
+$title = 'Delete User';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+Are you sure you want to delete user <?php echo $user->getFullname(); ?>? <br/>
+<form method="post">
+  <input type="submit" value="Delete">
+</form>
+```
+
+This covers basic CRUD actions using Doctrine 2 ORM in ZF2.
 
 Links
 -----
