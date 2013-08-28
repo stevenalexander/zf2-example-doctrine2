@@ -309,7 +309,6 @@ Edit module/Application/view/application/index/add.phtml:
 
 ```
 <?php
-// module/Album/view/album/album/add.phtml:
 
 $title = 'Add new User';
 $this->headTitle($title);
@@ -324,7 +323,6 @@ Edit module/Application/view/application/index/edit.phtml:
 
 ```
 <?php
-// module/Album/view/album/album/add.phtml:
 
 $title = 'Edit User';
 $this->headTitle($title);
@@ -339,7 +337,6 @@ Edit module/Application/view/application/index/delete.phtml:
 
 ```
 <?php
-// module/Album/view/album/album/add.phtml:
 
 $title = 'Delete User';
 $this->headTitle($title);
